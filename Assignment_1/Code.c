@@ -2,11 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-char datafile[] = "zoo.data";
+char datafile[] = "./data/zoo.data";
 FILE *dataset;
 
 int main(){
-    printf("Hello\n");
     dataset = fopen(datafile,"r");
     if(dataset==NULL){
         fprintf(stderr,"Cannot open data file");
