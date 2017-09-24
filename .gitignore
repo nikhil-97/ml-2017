@@ -1,2 +1,8 @@
 Assignment_1/*.o
+Assignment_1/*.out
+Assignment_1/*.exe
+Assignment_1/*.save-failed
 Assignment_2/*.o
+Assignment_2/*.out
+Assignment_2/*.exe
+Assignment_2/*.save-failed
