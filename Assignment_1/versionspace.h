@@ -1,42 +1,71 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define NUM_CLASS 7
 #define ATTRIBS 16
 
+typedef struct node {
+    char hypothesis[16];
+    struct node* next;
+    }ghypo;
+
+typedef ghypo* ghypoPtr;
+
 int no_concept[NUM_CLASS] = {0};
+
 //Initialize specific boundary
 char *specific_boundary[NUM_CLASS]; //char specific_boundary[NUM_CLASS][16];
+
 //Initialize general boundary
-char **general_boundary[NUM_CLASS]; //general_boundary = malloc(NUM_CLASS*sizeof(char **));
-int no_of_gb[NUM_CLASS];
-int x;
-for(x=0; x<NUM_CLASS; x++) no_of_gb[x] = 1;
+ghypoPtr general_boundaries[NUM_CLASS];
+int no_of_gb[NUM_CLASS]={1,1,1,1,1,1,1};
+int type = 0;
+int i=0;
+
+void parse_data(char *train_data,char *data){
+    //This function parses the string data from the dataset file and tokenizes it
+    //Each tokenized string is stored as char in train_data
+    char *token = strtok(data,",");
+    int t=0;
+    while(token){
+        token = strtok(NULL,",");
+        if(token==NULL) break; //Without this line, code gets paused here.
+        train_data[t++] = *token;
+        }
+    return;
+    }
+
+int consistent(char *array2){
+    return 0;
+}
 
 void build_general_boundary(int type, char *train_data)
 {
     if(type == train_data[16]) // +ve
     {
-        int x;
-        for(x=0; x<no_of_gb[type-1]; x++)
-        {
-            if(general_boundary[type-1][x] != NULL && !consistent(general_boundary[type-1][x], train_data))
-            {
-                free(general_boundary[type-1][x]);
-                general_boundary[type-1][x] = NULL;
+        //for all hypotheses i.e. iterate through linked list
+        //check consistency for all hypotheses
+        //remove inconsistent ones
+        ghypoPtr head = general_boundaries[type-1];
+        while(head->next!=NULL){
+            printf("Iterating hypothesis list\n");
+            if(!consistent(head->hypothesis,train_data)){
+                remove_hypothesis();
             }
         }
-    }
+        }
+
     else // -ve
     {
         int x;
         for(x=0; x<no_of_gb[type-1]; x++)
         {
-            if(general_boundary[type-1][x] != NULL && !consistent(general_boundary[type-1][x], train_data))
+/*            if(general_boundary[type-1][x] != NULL && !consistent(general_boundary[type-1][x], train_data))
             {
                 free(general_boundary[type-1][x]);
                 general_boundary[type-1][x] = NULL;
-            }
+            }*/
         }
     }
 }
@@ -54,23 +83,16 @@ void build_specific_boundary(int type, char *train_data)
     }
     else // -ve
     {
-        if(!consistent(specific_boundary[type-1], train_data)) no_concept[type-1] = 1;
+//        if(!consistent(specific_boundary[type-1], train_data)) no_concept[type-1] = 1;
     }
 }
 
-void build_version_space(char *data)
+void build_version_space(char *train_data)
 {
-    char *token = strtok(data, ",");
-    char *train_data = (char *)calloc(17, sizeof(char));
-    int i = 0, type;
-    while(token)
-    {
-        token = strtok(NULL, ",");
-        if(token == NULL) break; //Without this line, code gets paused here.
-        train_data[i++] = *token;
-    }
     type = train_data[16];
+    printf("Type = %c\n",type);
     if(no_concept[type-1] >= 1) return;
+
     for(i=0; i<NUM_CLASS; i++) // here i is type
     {
         if(i+1==type) // +ve example
@@ -84,5 +106,4 @@ void build_version_space(char *data)
             build_general_boundary(i+1, train_data);
         }
     }
-    free(train_data);
 }
