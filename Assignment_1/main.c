@@ -1,6 +1,4 @@
-
 #include "versionspace.h"
-
 
 char datafile[] = "./data/zoo.data";
 FILE *dataset;
@@ -33,7 +31,7 @@ int main()
         general_boundaries[g] = (ghypoPtr)malloc(sizeof(ghypo));
         memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
         general_boundaries[g]->next = NULL;
-        }
+    }
 
     char data[50];
     char *train_data = calloc(17,sizeof(char));
