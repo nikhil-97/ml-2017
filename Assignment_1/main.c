@@ -1,6 +1,7 @@
 
 #include "versionspace.h"
 
+
 char datafile[] = "./data/zoo.data";
 FILE *dataset;
 
@@ -17,10 +18,10 @@ int main()
     if(dataset == NULL)
     {
         fprintf(stderr, "Cannot open data file");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
-    int s, g, k,j;
+    int s, g, k;
     // Initialize specific boundaries
     for(s = 0; s < NUM_CLASS; s++)
     {
@@ -30,11 +31,9 @@ int main()
 
     for(g=0; g<NUM_CLASS;g++)  {
         general_boundaries[g] = (ghypoPtr)malloc(sizeof(ghypo));
-        for(j=0;j<ATTRIBS;j++){
-            general_boundaries[g]->hypothesis[j] = '?';
-            general_boundaries[g]->next = NULL;
+        memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
+        general_boundaries[g]->next = NULL;
         }
-    }
 
     char data[50];
     char *train_data = calloc(17,sizeof(char));
@@ -42,7 +41,7 @@ int main()
     // The main loop
     //Parsing the data file to get individual strings line by line
     while(fgets(data, 50, dataset) != NULL) {
-        printf("Data : %s\n",data);
+        printf("Data : %s",data);
         parse_data(train_data,data);
         build_version_space(train_data);}
 
@@ -57,7 +56,7 @@ int main()
             tmp = head;
             head = head->next;
             free(tmp);
-            }
+        }
     }
 
     free(train_data);

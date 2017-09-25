@@ -12,7 +12,6 @@ typedef struct node {
 
 typedef ghypo* ghypoPtr;
 
-
 int no_concept[NUM_CLASS] = {0};
 
 //Initialize specific boundary
@@ -45,11 +44,16 @@ void build_general_boundary(int type, char *train_data)
 {
     if(type == train_data[16]) // +ve
     {
-        int x;
-        for(x=0; x<no_of_gb[type-1]; x++)
-        {
-
+        //for all hypotheses i.e. iterate through linked list
+        //check consistency for all hypotheses
+        //remove inconsistent ones
+        ghypoPtr head = general_boundaries[type-1];
+        while(head->next!=NULL){
+            printf("Iterating hypothesis list\n");
+            if(!consistent(head->hypothesis,train_data)){
+                remove_hypothesis();
             }
+        }
         }
 
     else // -ve
@@ -86,6 +90,7 @@ void build_specific_boundary(int type, char *train_data)
 void build_version_space(char *train_data)
 {
     type = train_data[16];
+    printf("Type = %c\n",type);
     if(no_concept[type-1] >= 1) return;
 
     for(i=0; i<NUM_CLASS; i++) // here i is type
