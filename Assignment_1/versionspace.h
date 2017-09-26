@@ -1,16 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #define NUM_CLASS 7
 #define ATTRIBS 16
 
-typedef ghypo* ghypoPtr;
-
 typedef struct node {
     char hypothesis[ATTRIBS];
-    ghypoPtr next;
+    struct node *next;
 }ghypo;
+
+typedef ghypo* ghypoPtr;
 
 int no_concept[NUM_CLASS] = {0};
 
@@ -40,6 +39,11 @@ int consistent(int type, char *hypothesis, char *train_data){
     int value = (type == train_data[16]);
     for(i=0; i<ATTRIBS; i++) if(!(hypothesis[i] == '?' || hypothesis[i] == train_data[i])) return !value;
     return value;
+}
+
+int subsetOf(ghypoPtr h1, ghypoPtr h2){ // h2 is more general than h2 if returned 1
+    for(i=0; i<ATTRIBS; i++) if(h2->hypothesis[i] == '?' && h1->hypothesis[i] != h2->hypothesis[i]) return 0;
+    return 1;
 }
 
 void remove_hypothesis(int type, ghypoPtr prev, ghypoPtr current)
@@ -119,6 +123,30 @@ void build_specific_boundary(int type, char *train_data)
     }
 }
 
+void remove_unnecessary_gb()
+{
+    int i;
+    for(i=0; i<NUM_CLASS; i++)
+    {
+        ghypoPtr left_node = general_boundaries[i], right_node = general_boundaries[i]->next, prev = NULL;
+        while (left_node != NULL && left_node->next != NULL)
+        {
+            right_node = left_node->next;
+            while (right_node != NULL)
+            {
+                if(subsetOf(left_node, right_node))
+                {
+                     remove_hypothesis(i+1, prev, left_node);
+                     break;
+                }
+                right_node = right_node->next;
+            }
+            prev = left_node;
+            left_node = left_node->next;
+        }
+    }
+}
+
 void build_version_space(char *train_data)
 {
     type = train_data[16];
@@ -138,4 +166,21 @@ void build_version_space(char *train_data)
             build_general_boundary(i+1, train_data);
         }
     }
+    remove_unnecessary_gb();
+}
+
+void save_vs_to_file()
+{
+    int x;
+    printf("Specific Boundary\n");
+    for(x=0; x<NUM_CLASS; x++)
+    {
+        printf("%s\n", specific_boundary[x]);
+    }
+    printf("General Boundary\n");
+    for(x=0; x<NUM_CLASS; x++)
+    {
+        break;
+    }
+    return;
 }

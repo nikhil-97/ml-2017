@@ -41,7 +41,10 @@ int main()
     while(fgets(data, 50, dataset) != NULL) {
         printf("Data : %s",data);
         parse_data(train_data,data);
-        build_version_space(train_data);}
+        build_version_space(train_data);
+    }
+
+    save_vs_to_file();
 
     for(s = 0; s < NUM_CLASS; s++) free(specific_boundary[s]);
 
