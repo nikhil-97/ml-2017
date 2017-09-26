@@ -1,6 +1,6 @@
 #include "versionspace.h"
 
-char datafile[] = "./data/zoo.data";
+char datafile[] = "./data/zoo2.data";
 FILE *dataset;
 
 //char data[50];
@@ -24,7 +24,7 @@ int main()
     for(s = 0; s < NUM_CLASS; s++)
     {
         specific_boundary[s] = (char *)calloc(ATTRIBS, sizeof(char));
-        for(k = 0; k < ATTRIBS; k++) specific_boundary[s][k] = 237; //237 is ASCII value for phi
+        for(k = 0; k < ATTRIBS; k++) specific_boundary[s][k] = 'o'; //237 is ASCII value for phi
     }
 
     for(g=0; g<NUM_CLASS;g++)  {
@@ -39,7 +39,7 @@ int main()
     // The main loop
     //Parsing the data file to get individual strings line by line
     while(fgets(data, 50, dataset) != NULL) {
-        printf("Data : %s",data);
+        printf("Data : %s\n",data);
         parse_data(train_data,data);
         build_version_space(train_data);
     }
