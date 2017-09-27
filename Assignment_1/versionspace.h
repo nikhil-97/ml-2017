@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define NUM_CLASS 1
-#define ATTRIBS 6
+#define NUM_CLASS 7
+#define ATTRIBS 16
 
 typedef struct node {
     char hypothesis[ATTRIBS];
@@ -22,7 +22,24 @@ ghypoPtr general_boundaries[NUM_CLASS];
 int type = 0;
 int i=0;
 int class_type = 1;
+char all_possible_values[NUM_CLASS][7];
+all_possible_values[0]
 
+void print_general_boundary(){
+for(int g = 0; g < NUM_CLASS; g++)
+    {
+        ghypoPtr head = general_boundaries[g];
+        printf("g = %d\n",g);
+        while (head != NULL)
+        {
+            for(int h=0;h<ATTRIBS;h++){
+                printf("%c ",head->hypothesis[h]);}
+            printf(",");
+            head = head->next;
+        }
+        printf(";\n");
+    }
+    }
 void parse_data(char *train_data,char *data){
     //This function parses the string data from the dataset file and tokenizes it
     //Each tokenized string is stored as char in train_data
@@ -38,8 +55,8 @@ void parse_data(char *train_data,char *data){
 
 int consistent(int type, char *hypothesis, char *train_data){
     int value = (type == train_data[ATTRIBS]-'0');
-    for(i=0; i<ATTRIBS; i++){
-            if(!(hypothesis[i] == '?' || hypothesis[i] == train_data[i])) return !value;}
+    for(int c=0; c<ATTRIBS; c++){
+        if(!(hypothesis[c] == '?' || hypothesis[c] == train_data[i]) || (value && hypothesis[c]=='o')) return !value;}
     return value;
 }
 
@@ -52,13 +69,11 @@ void remove_hypothesis(int type, ghypoPtr prev, ghypoPtr current)
 {
     if(prev == NULL) general_boundaries[type-1] = current->next;
     else prev->next = current->next;
-    //ghypoPtr tmp = current->next;
-    //free(current);
-    //if(tmp!=NULL) current = tmp->next;
-    //else current = NULL;
+    //current = current->next;
+    free(current);
 }
 
-void go_to_next_level(int type, ghypoPtr prev, ghypoPtr current)
+void go_to_next_level(int type, char *train_data, ghypoPtr prev, ghypoPtr current)
 {
     printf("Going to next level\n");
     int i;//, j;
@@ -66,10 +81,15 @@ void go_to_next_level(int type, ghypoPtr prev, ghypoPtr current)
     {
         if(current->hypothesis[i] == '?' && specific_boundary[type-1][i] != '?')
         {
-            ghypoPtr newHypo = (ghypoPtr)calloc(1, sizeof(ghypo));
-            //for(j=0; j<ATTRIBS; j++) newHypo->hypothesis[j] = current->hypothesis[j];
+            ghypoPtr newHypo = (ghypoPtr)malloc(sizeof(ghypo));
+            //for(int j=0; j<ATTRIBS; j++) newHypo->hypothesis[j] = current->hypothesis[j];
             memcpy(newHypo->hypothesis,current->hypothesis,sizeof(newHypo->hypothesis));
             newHypo->hypothesis[i] = specific_boundary[type-1][i];
+            if(!consistent(type,newHypo->hypothesis,train_data)){
+                free(newHypo);
+                continue;
+            }
+
             if(prev == NULL) general_boundaries[type-1] = newHypo;
             else prev->next = newHypo;
             newHypo->next = current;
@@ -78,10 +98,8 @@ void go_to_next_level(int type, ghypoPtr prev, ghypoPtr current)
     }
     if(prev == NULL) general_boundaries[type-1] = current->next;
     else prev->next = current->next;
-    //ghypoPtr tmp = current->next;
-    //free(current);
-    //if(tmp!=NULL) current = tmp->next;
-    //else current = NULL;
+    //current = current->next;
+    free(current);
 }
 
 void build_general_boundary(int type, char *train_data)
@@ -92,31 +110,20 @@ void build_general_boundary(int type, char *train_data)
     //check consistency for all hypotheses
     //remove inconsistent ones
     while(current!=NULL){
-        printf("Iterating hypothesis list\n");
         if(!consistent(type, current->hypothesis,train_data)){
             if(type == train_data[ATTRIBS]-'0'){ //+ve
                 remove_hypothesis(type, prev, current);}
-
-            else go_to_next_level(type, prev, current); //-ve
+            else go_to_next_level(type, train_data, prev, current); //-ve
         }
-        prev = current;
+        else{
+            prev = current;
+            //current = current->next;
+        }
         current = current->next;
         }
     //}
 
-/*     else // -ve
- *     {
- *         ghypoPtr current = general_boundaries[type-1], prev = NULL;
- *         while(current!=NULL){
- *             printf("Iterating hypothesis list\n");
- *             if(!consistent(type, current->hypothesis,train_data)){
- *                 go_to_next_level(type, prev, current);
- *             }
- *             prev = current;
- *             current = current->next;
- *         }
- *     }
- */
+    print_general_boundary();
 }
 
 void build_specific_boundary(int type, char *train_data)
@@ -142,11 +149,13 @@ void build_specific_boundary(int type, char *train_data)
 
 void remove_unnecessary_gb()
 {
-    int i;
-    for(i=0; i<NUM_CLASS; i++)
+    int p;
+    for(p=0; p<NUM_CLASS; p++)
     {
         //general_boundaries[0] is NULL here
-        ghypoPtr left_node = general_boundaries[i], right_node = general_boundaries[i]->next, prev = NULL;
+        ghypoPtr left_node = general_boundaries[p], right_node , prev = NULL;
+        if(left_node==NULL) continue;
+        right_node = left_node->next;
         while (left_node != NULL && left_node->next != NULL)
         {
             right_node = left_node->next;
@@ -155,7 +164,7 @@ void remove_unnecessary_gb()
                 //getting some error here
                 if(subsetOf(left_node, right_node))
                 {
-                     remove_hypothesis(i+1, prev, left_node);
+                     remove_hypothesis(p+1, prev, left_node);
                      break;
                 }
                 right_node = right_node->next;
@@ -204,18 +213,6 @@ void save_vs_to_file()
     printf("\n");
     }
     printf("General Boundary\n");
-    for(int g = 0; g < NUM_CLASS; g++)
-    {
-        ghypoPtr head = general_boundaries[g];
-        printf("g = %d\n",g);
-        while (head != NULL)
-        {
-            for(int h=0;h<ATTRIBS;h++){
-                printf("%c ",head->hypothesis[h]);}
-            printf("\t");
-            head = head->next;
-        }
-        printf("\n");
-    }
+    print_general_boundary();
     return;
 }

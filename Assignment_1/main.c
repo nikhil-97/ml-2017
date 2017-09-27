@@ -1,6 +1,6 @@
 #include "versionspace.h"
 
-char datafile[] = "./data/zoo2.data";
+char datafile[] = "./data/zoo3.data";
 FILE *dataset;
 
 //char data[50];
@@ -46,12 +46,12 @@ int main()
 
     save_vs_to_file();
 
-    for(s = 0; s < NUM_CLASS; s++) free(specific_boundary[s]);
+    for(int sb = 0; sb < NUM_CLASS; sb++) free(specific_boundary[sb]);
 
-    for(g = 0; g < NUM_CLASS; g++)
+    for(int gb = 0; gb < NUM_CLASS; gb++)
     {
         ghypoPtr tmp;
-        ghypoPtr head = general_boundaries[g];
+        ghypoPtr head = general_boundaries[gb];
         while (head != NULL)
         {
             tmp = head;

@@ -3,6 +3,7 @@ Assignment_1/*.out
 Assignment_1/*.exe
 Assignment_1/*.save-failed
 Assignment_1/compiling_error.txt
+Assignment_1/vgcore.*
 Assignment_2/*.o
 Assignment_2/*.out
 Assignment_2/*.exe
