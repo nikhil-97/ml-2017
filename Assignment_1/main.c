@@ -29,7 +29,11 @@ int main()
 
     for(g=0; g<NUM_CLASS;g++)  {
         general_boundaries[g] = (ghypoPtr)malloc(sizeof(ghypo));
-        memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
+        //memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
+        for(k=0; k<ATTRIBS; k++)
+        {
+        	general_boundaries[g]->hypothesis[k] = '?';
+        }	
         general_boundaries[g]->next = NULL;
     }
 
@@ -45,10 +49,11 @@ int main()
     }
 
     save_vs_to_file();
+    int sb,gb;
 
-    for(int sb = 0; sb < NUM_CLASS; sb++) free(specific_boundary[sb]);
+    for(sb = 0; sb < NUM_CLASS; sb++) free(specific_boundary[sb]);
 
-    for(int gb = 0; gb < NUM_CLASS; gb++)
+    for(gb = 0; gb < NUM_CLASS; gb++)
     {
         ghypoPtr tmp;
         ghypoPtr head = general_boundaries[gb];
