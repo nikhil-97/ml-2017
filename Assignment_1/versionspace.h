@@ -4,49 +4,61 @@
 #define NUM_CLASS 7
 #define ATTRIBS 16
 
+//NUM_CLASS is the number of classes we wish to train for. In zoo.data it is 7
+// ATTRIBS is the number of attributes we have in our training examples.
+
+//Specific Boundary consists of an array of NUM_CLASS pointers. Each pointer points to another char array.
+//This char array is the specific boundary of the corresponding class.
+
+//General Boundary also consists of an array of NUM_CLASS pointers. Each pointer points to the head of a linked list.
+//Each node of the linked list corresponds to a hypothesis in the general boundary. It is a linked list to enable easy remove and add operations.
+
 typedef struct node {
     char hypothesis[ATTRIBS];
     struct node *next;
 }ghypo;
+//ghypo is a hypothesis in the general boundary. Consists of a char array(the hypothesis) and pointer to next node in the list.
 
 typedef ghypo* ghypoPtr;
 
 int no_concept[NUM_CLASS] = {0};
 
-//Initialize specific boundary
-char *specific_boundary[NUM_CLASS]; //char specific_boundary[NUM_CLASS][16];
+//Initialize specific boundary as an array of NUM_CLASS pointers.
+char *specific_boundary[NUM_CLASS];
 
-//Initialize general boundary
+//Initialize general boundary as an array of NUM_CLASS pointers.
 ghypoPtr general_boundaries[NUM_CLASS];
-//int no_of_gb[NUM_CLASS]={1,1,1,1,1,1,1};
+
 int type = 0;
 int i=0;
 int class_type = 1;
+
+
 char all_possible_values[ATTRIBS][7] = {
     {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'},
-    {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','2','4','5','6','8','\0'}, 
+    {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}, {'0','2','4','5','6','8','\0'},
     {'0','1','\0'}, {'0','1','\0'}, {'0','1','\0'}
 };
 
 
 
 void print_general_boundary(){
-    int g;
-for(g = 0; g < NUM_CLASS; g++)
+//Function to print the general boundaries.
+for(int g = 0; g < NUM_CLASS; g++)
     {
         ghypoPtr head = general_boundaries[g];
         printf("g = %d\n",g);
         while (head != NULL)
         {
-            int h;
-            for(h=0;h<ATTRIBS;h++){
-                printf("%c ",head->hypothesis[h]);}
-            printf(",");
+            //Traverse through the linked list and print out each hypothesis
+            for(int h=0;h<ATTRIBS;h++) printf("%c ",head->hypothesis[h]);
+            printf(",\n");
             head = head->next;
         }
         printf(";\n");
     }
     }
+
 void parse_data(char *train_data,char *data){
     //This function parses the string data from the dataset file and tokenizes it
     //Each tokenized string is stored as char in train_data
@@ -61,9 +73,15 @@ void parse_data(char *train_data,char *data){
     }
 
 int consistent(int type, char *hypothesis, char *train_data){
-    int value = (type == train_data[ATTRIBS]-'0'),c;
+    //Check if the hypothesis and train_data are consistent or not
+    //Returns 1 if negative example and
+    int value = (type == train_data[ATTRIBS]-'0');
+    //value if 1 if positive training example, 0 if negative example.
+    int c;
     for(c=0; c<ATTRIBS; c++){
-        if(!(hypothesis[c] == '?' || hypothesis[c] == train_data[c]) || (value && hypothesis[c]=='o')) return !value;}
+        if(!(hypothesis[c] == '?' || hypothesis[c] == train_data[c]) || (value && hypothesis[c]=='o')) return !value;
+        //If inconsistent, return.
+        }
     return value;
 }
 
@@ -74,22 +92,22 @@ int subsetOf(ghypoPtr h1, ghypoPtr h2){ // h2 is more general than or equal to h
 
 void remove_hypothesis(int type, ghypoPtr prev, ghypoPtr current)
 {
+    //Remove a hypothesis(node in linked list) from general boundary.
     if(prev == NULL) general_boundaries[type-1] = current->next;
     else prev->next = current->next;
-    //current = current->next;
-    //free(current);
 }
 
 int ispath(char *h1, char *h2)
 {
+    //Check if there is a path from hypothesis h1 to hypothesis h2.
     int i;
     for(i=0; i<ATTRIBS; i++) if(!(h2[i]=='o' || h2[i]==h1[i] || h1[i]=='?')) return 0;
     return 1;
 }
 
-void go_to_next_level(int type, char *train_data, ghypoPtr prev, ghypoPtr current)
+void specify_gb(int type, char *train_data, ghypoPtr prev, ghypoPtr current)
 {
-    printf("Going to next level\n");
+    //Specifying the genera; boundary.
     int i,j,k;
     for(i=0; i<ATTRIBS; i++)
     {
@@ -102,7 +120,7 @@ void go_to_next_level(int type, char *train_data, ghypoPtr prev, ghypoPtr curren
                 for(k=0;k<ATTRIBS;k++)
                 {
                     newHypo->hypothesis[k] = current->hypothesis[k];
-                }    
+                }
                 newHypo->hypothesis[i] = all_possible_values[i][j];
                 j++;
                 if(!consistent(type,newHypo->hypothesis,train_data) || !ispath(newHypo->hypothesis, specific_boundary[type-1]))
@@ -114,8 +132,8 @@ void go_to_next_level(int type, char *train_data, ghypoPtr prev, ghypoPtr curren
                 else prev->next = newHypo;
                 newHypo->next = current;
                 prev = newHypo;
-            }    
-        }    
+            }
+        }
         else if(current->hypothesis[i] == '?' && specific_boundary[type-1][i] != '?')
         {
             ghypoPtr newHypo = (ghypoPtr)malloc(sizeof(ghypo));
@@ -141,34 +159,33 @@ void go_to_next_level(int type, char *train_data, ghypoPtr prev, ghypoPtr curren
 
 void build_general_boundary(int type, char *train_data)
 {
-    printf("Building general boundary\n");
+    //printf("Building general boundary\n");
     ghypoPtr current = general_boundaries[type-1], prev = NULL,temp;
     //for all hypotheses i.e. iterate through linked list
     //check consistency for all hypotheses
     //remove inconsistent ones
     while(current!=NULL){
         if(!consistent(type, current->hypothesis,train_data)){
-            if(type == train_data[ATTRIBS]-'0'){ //+ve
+            if(type == train_data[ATTRIBS]-'0'){
+                //If positive example and inconsistent, remove this hypothesis.
                 remove_hypothesis(type, prev, current);}
-            else go_to_next_level(type, train_data, prev, current); //-ve
-            temp = current;
+            //If negative example, specify the general boundary/
+            else specify_gb(type, train_data, prev, current);
+            temp=current;
             current = current->next;
             free(temp);
-        }
+            }
         else{
             prev = current;
             current = current->next;
-        }
-        //current = current->next;
-        }
-    //}
-
-    print_general_boundary();
+            }
+    }
 }
 
 void build_specific_boundary(int type, char *train_data)
 {
-    printf("Building specific boundary\n");
+    //Building the specific boundary.
+    //printf("Building specific boundary\n");
     if(type == train_data[ATTRIBS]-'0') // +ve
     {
         int x;
@@ -176,11 +193,9 @@ void build_specific_boundary(int type, char *train_data)
         {
             if(specific_boundary[type-1][x] == 'o') specific_boundary[type-1][x] = train_data[x];
             else if(specific_boundary[type-1][x] != train_data[x]) specific_boundary[type-1][x] = '?';
-            printf("%c ",specific_boundary[type-1][x]);
         }
-        printf("\n");
     }
-    else // -ve
+    else
     {
         //TODO
         //if(!consistent(type, specific_boundary[type-1], train_data)) no_concept[type-1] = 1;
@@ -189,7 +204,8 @@ void build_specific_boundary(int type, char *train_data)
 
 void remove_unnecessary_gb()
 {
-    int p,i;
+    //Remove unnecessary general boundaries.
+    int p,r;
     for(p=0; p<NUM_CLASS; p++)
     {
         //general_boundaries[0] is NULL here
@@ -198,26 +214,24 @@ void remove_unnecessary_gb()
         right_node = left_node->next;
         while (left_node != NULL && left_node->next != NULL)
         {
-            i = 0;
+            r = 0;
             right_node = left_node->next;
             while (right_node != NULL)
             {
                 //getting some error here
                 if(subsetOf(left_node, right_node))
                 {
-                     remove_hypothesis(p+1, prev, left_node);
-                     temp = left_node->next;
-                     free(left_node);
-                     left_node = temp;
-                     i = 1;
-                     break;
+                    remove_hypothesis(p+1, prev, left_node);
+                    temp = left_node->next;
+                    free(left_node);
+                    left_node = temp;
+                    r = 1;
+                    break;
                 }
                 right_node = right_node->next;
             }
-            if(i == 1)
-            {
-                continue;
-            }    
+            if(r == 1) continue;
+
             prev = left_node;
             left_node = left_node->next;
         }
@@ -226,32 +240,34 @@ void remove_unnecessary_gb()
 
 void build_version_space(char *train_data)
 {
+    //Main function which calls the build_specific_boundary and build_general_boundary.
+
     type = train_data[ATTRIBS] - '0';//This is to make type as int
     //train_data is of type int, train_data[ATTRIBS] is char
+
     //TODO
     //if(no_concept[type-1] >= 1) return;
 
+    //Build version space for each class.
     for(class_type=1; class_type<=NUM_CLASS; class_type++) // here i is type
     {
         printf("Training for class %d\n",class_type);
-        if(class_type==type) // +ve example
+        if(class_type==type) // positive example
         {
             build_general_boundary(class_type, train_data);
             build_specific_boundary(class_type, train_data);
         }
-        else // -ve example
+        else // negative example
         {
 
             build_specific_boundary(class_type, train_data);
             build_general_boundary(class_type, train_data);
             remove_unnecessary_gb();
         }
-
     }
-    //remove_unnecessary_gb();
 }
 
-void save_vs_to_file()
+void print_version_space()
 {
     int x,i;
     printf("Specific Boundary\n");

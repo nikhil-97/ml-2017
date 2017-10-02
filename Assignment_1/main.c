@@ -1,6 +1,8 @@
 #include "versionspace.h"
 
-char datafile[] = "./data/zoo3.data";
+//datafile is the dataset to be used for training.
+char datafile[] = "./data/zoo.data";
+//dataset is the file pointer to the data file.
 FILE *dataset;
 
 //char data[50];
@@ -19,37 +21,44 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    int s, g, k;
-    // Initialize specific boundaries
+    int s, g;
+    //Please see versionspace.h for definitions of specific_boundary and general_boundaries
+
+    // Initialize specific boundaries to o,o,o.....
     for(s = 0; s < NUM_CLASS; s++)
     {
         specific_boundary[s] = (char *)calloc(ATTRIBS, sizeof(char));
-        for(k = 0; k < ATTRIBS; k++) specific_boundary[s][k] = 'o'; //237 is ASCII value for phi
+        memset(specific_boundary[s],'o',ATTRIBS*sizeof(char));
     }
 
-    for(g=0; g<NUM_CLASS;g++)  {
+    //Initialize general boundaries to ?,?,?....
+
+    for(g=0; g<NUM_CLASS;g++)
+    {
         general_boundaries[g] = (ghypoPtr)malloc(sizeof(ghypo));
-        //memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
-        for(k=0; k<ATTRIBS; k++)
-        {
-        	general_boundaries[g]->hypothesis[k] = '?';
-        }	
+        memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
         general_boundaries[g]->next = NULL;
     }
 
-    char data[50];
-    char *train_data = calloc(17,sizeof(char));
+    char data[1024];
+    char *train_data = calloc(ATTRIBS+1,sizeof(char)); //train_data is a char array of size ATTRIBS+1
 
     // The main loop
     //Parsing the data file to get individual strings line by line
+    int count=1;
+
     while(fgets(data, 50, dataset) != NULL) {
-        printf("Data : %s\n",data);
+        printf("\nData #%d : %s\n",count,data);
+        count++;
         parse_data(train_data,data);
         build_version_space(train_data);
     }
 
-    save_vs_to_file();
+    print_version_space();
+
+    //Free all the heap memory.
     int sb,gb;
+
 
     for(sb = 0; sb < NUM_CLASS; sb++) free(specific_boundary[sb]);
 
@@ -67,5 +76,6 @@ int main()
 
     free(train_data);
     fclose(dataset);
+
     return 0;
 }
