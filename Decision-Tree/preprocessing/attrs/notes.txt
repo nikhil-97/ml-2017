@@ -1,0 +1,6 @@
+age 17 31 44 90
+capitalgain 0-Yes,!0-No
+capitalloss 0-Yes,!0-No
+educationgain 1 9 10 16
+fnlwgt 12285 141085 210488 1484705
+hoursperweek 40-Yes,!40-No

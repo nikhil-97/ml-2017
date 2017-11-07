@@ -1,0 +1,3 @@
+class DTree {
+    Node root;
+}
