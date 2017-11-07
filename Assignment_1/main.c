@@ -1,6 +1,6 @@
 #include "versionspace.h"
 
-char datafile[] = "./data/zoo.data";
+char datafile[] = "./data/zoo3.data";
 FILE *dataset;
 
 //char data[50];
@@ -24,12 +24,16 @@ int main()
     for(s = 0; s < NUM_CLASS; s++)
     {
         specific_boundary[s] = (char *)calloc(ATTRIBS, sizeof(char));
-        for(k = 0; k < ATTRIBS; k++) specific_boundary[s][k] = 237; //237 is ASCII value for phi
+        for(k = 0; k < ATTRIBS; k++) specific_boundary[s][k] = 'o'; //237 is ASCII value for phi
     }
 
     for(g=0; g<NUM_CLASS;g++)  {
         general_boundaries[g] = (ghypoPtr)malloc(sizeof(ghypo));
-        memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
+        //memset(general_boundaries[g]->hypothesis,'?',ATTRIBS*sizeof(char));
+        for(k=0; k<ATTRIBS; k++)
+        {
+        	general_boundaries[g]->hypothesis[k] = '?';
+        }	
         general_boundaries[g]->next = NULL;
     }
 
@@ -39,19 +43,20 @@ int main()
     // The main loop
     //Parsing the data file to get individual strings line by line
     while(fgets(data, 50, dataset) != NULL) {
-        printf("Data : %s",data);
+        printf("Data : %s\n",data);
         parse_data(train_data,data);
         build_version_space(train_data);
     }
 
     save_vs_to_file();
+    int sb,gb;
 
-    for(s = 0; s < NUM_CLASS; s++) free(specific_boundary[s]);
+    for(sb = 0; sb < NUM_CLASS; sb++) free(specific_boundary[sb]);
 
-    for(g = 0; g < NUM_CLASS; g++)
+    for(gb = 0; gb < NUM_CLASS; gb++)
     {
         ghypoPtr tmp;
-        ghypoPtr head = general_boundaries[g];
+        ghypoPtr head = general_boundaries[gb];
         while (head != NULL)
         {
             tmp = head;
